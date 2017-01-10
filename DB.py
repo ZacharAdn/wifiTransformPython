@@ -147,6 +147,12 @@ class DB:
         return self.__getQuery("select MAC_SRC, MAC_DST, packets from session where  (channel != '') "
                                " and (MAC_DST != 'ff:ff:ff:ff:ff:ff') ")
 
+    # preperation for chnnel Usage graph
+    def getSomthing(self):
+        return self.__getQuery("select MAC_SRC, MAC_DST, packets from session where  (channel != '') "
+                               " and (MAC_DST != 'ff:ff:ff:ff:ff:ff') ")
+
+
  # M
 
 '''
