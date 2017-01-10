@@ -5,6 +5,8 @@ from tkFileDialog import askopenfilename
 import matplotlib, numpy, sys
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as pl
+from mpl_toolkits.mplot3d import Axes3D
+
 
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -72,6 +74,13 @@ class Gui(Frame):
 
         note.add(self.tabCnlPER, text="Per By Channel")
         self.tabCnlPER.bind("<Button-1>", self.showPerByChannelGraph())
+
+
+        # note.add(self.tabCnlPER, text="connctions")
+        # self.tabCnlPER.bind("<Button-1>", self.connectionBetwenUsers())
+
+        self.connectionBetwenUsers()
+
 
         note.add(self.tabSsn, text="Sessions")
 
@@ -246,6 +255,36 @@ class Gui(Frame):
         toolbar.update()
         canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
         canvas.show()
+
+    def connectionBetwenUsers(self):
+        fig = pl.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        n = 100
+
+        global db
+        connections= db.getConnectionUsers()
+
+        mac_src=[]
+        mac_dst=[]
+        packets=[]
+        for connect in connections:
+            mac_src.append(connect[0])
+            mac_dst.append(connect[1])
+            packets.append(connect[2])
+
+        print("connections : " , connections)
+
+        # for c, m, zl, zh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
+            # xs = randrange(n, 23, 32)
+            # ys = randrange(n, 0, 100)
+            # zs = randrange(n, zl, zh)
+        ax.scatter(mac_src[0], mac_dst[0], 10, 'r', marker='o')
+
+        # ax.set_xlabel('X Label')
+        # ax.set_ylabel('Y Label')
+        # ax.set_zlabel('Z Label')
+        #
+        # pl.show()
 
 
 root = Tk()

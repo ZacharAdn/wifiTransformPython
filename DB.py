@@ -143,6 +143,11 @@ class DB:
     def getChannellUsage(self):
         return self.__getQuery("select channel, sum(packets), sum(retransmit) from session group by channel")
 
+    def getConnectionUsers(self):
+        return self.__getQuery("select MAC_SRC, MAC_DST, packets from session where  (channel != '') "
+                               " and (MAC_DST != 'ff:ff:ff:ff:ff:ff') ")
+
+ # M
 
 '''
 #DB run example
