@@ -79,7 +79,7 @@ class Gui(Frame):
         # note.add(self.tabCnlPER, text="connctions")
         # self.tabCnlPER.bind("<Button-1>", self.connectionBetwenUsers())
 
-        self.connectionBetwenUsers()
+        # self.connectionBetwenUsers()
 
 
         note.add(self.tabSsn, text="Sessions")
@@ -256,29 +256,29 @@ class Gui(Frame):
         canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
         canvas.show()
 
-    def connectionBetwenUsers(self):
-        fig = pl.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        n = 100
-
-        global db
-        connections= db.getConnectionUsers()
-
-        mac_src=[]
-        mac_dst=[]
-        packets=[]
-        for connect in connections:
-            mac_src.append(connect[0])
-            mac_dst.append(connect[1])
-            packets.append(connect[2])
-
-        print("connections : " , connections)
+    # def connectionBetwenUsers(self):
+        # fig = pl.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # n = 100
+        #
+        # global db
+        # connections= db.getConnectionUsers()
+        #
+        # mac_src=[]
+        # mac_dst=[]
+        # packets=[]
+        # for connect in connections:
+        #     mac_src.append(connect[0])
+        #     mac_dst.append(connect[1])
+        #     packets.append(connect[2])
+        #
+        # print("connections : " , connections)
 
         # for c, m, zl, zh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
             # xs = randrange(n, 23, 32)
             # ys = randrange(n, 0, 100)
             # zs = randrange(n, zl, zh)
-        ax.scatter(mac_src[0], mac_dst[0], 10, 'r', marker='o')
+        # ax.scatter("e", "f", 10, 'r', marker='o')
 
         # ax.set_xlabel('X Label')
         # ax.set_ylabel('Y Label')
