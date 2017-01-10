@@ -143,6 +143,8 @@ class DB:
     def getChannellUsage(self):
         return self.__getQuery("select channel, sum(packets), sum(retransmit) from session group by channel")
 
+    def getSomhting(self):
+        return self.__getQuery("select channel, sum(packets), sum(retransmit) from session group by channel")
 
 '''
 #DB run example
