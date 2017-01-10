@@ -79,12 +79,16 @@ class Gui(Frame):
         # note.add(self.tabCnlPER, text="connctions")
         # self.tabCnlPER.bind("<Button-1>", self.connectionBetwenUsers())
 
-        # self.connectionBetwenUsers()
+        self.connectionBetwenUsers()
 
 
         note.add(self.tabSsn, text="Sessions")
 
         note.add(self.tabUsr, text="Users")
+
+        # Tab to bind Channel usage
+        note.add(self.tabUsr, text="Users")
+        self.tabCnlPER.bind("<Button-1>", self.showPerByChannelUsage())
 
         note.place(x=0, y=5)
 
@@ -256,29 +260,86 @@ class Gui(Frame):
         canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
         canvas.show()
 
-    # def connectionBetwenUsers(self):
-        # fig = pl.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        # n = 100
-        #
-        # global db
-        # connections= db.getConnectionUsers()
-        #
-        # mac_src=[]
-        # mac_dst=[]
-        # packets=[]
-        # for connect in connections:
-        #     mac_src.append(connect[0])
-        #     mac_dst.append(connect[1])
-        #     packets.append(connect[2])
-        #
-        # print("connections : " , connections)
+
+
+    # View Graph of channel usgae
+    def showPerByChannelUsage(self):
+        f = Figure(figsize=(13, 6.5), dpi=100)
+        ax = f.add_subplot(111)
+
+        global db
+        channels = db.getChannelTransformation()
+
+        # print channels
+
+        channelTab = []
+        packets = []
+        retransmit = []
+
+        for channel in channels:
+            channelTab.append(channel[0])
+            packets.append(channel[1])
+            retransmit.append(channel[2])
+
+        index = numpy.arange(len(channels))
+        bar_width = .1
+        opacity = 0.4
+
+        ratioList = []
+        for x in range(0, len(retransmit)):
+            if (packets[x] + retransmit[x] != 0):
+                ratioList.append((packets[x] / (packets[x] + retransmit[x])) * 100)
+            else:
+                ratioList.append(100)
+
+        print ratioList
+
+        ax.bar(index, ratioList, bar_width,
+               alpha=opacity,
+               color='y',
+               label='Connection Quality')
+
+        ax.legend(loc=1)
+
+        title = "CHANNEL PER"
+        ax.set_title(title)
+        ax.set_xlabel('Channels')
+        ax.set_ylabel('User PER (%)')
+        ax.set_xticks(index)
+        ax.set_xticklabels(channelTab, fontsize='small', ha='right', rotation=20)
+        ax.set_xlim([0, len(channelTab)])
+        ax.set_ylim([0, 100])
+
+        canvas = FigureCanvasTkAgg(f, master=self.tabCnlPER)
+
+        toolbar = NavigationToolbar2TkAgg(canvas, self.tabCnlPER)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
+        canvas.show()
+
+    def connectionBetwenUsers(self):
+        fig = pl.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        n = 100
+
+        global db
+        connections= db.getConnectionUsers()
+
+        mac_src=[]
+        mac_dst=[]
+        packets=[]
+        for connect in connections:
+            mac_src.append(connect[0])
+            mac_dst.append(connect[1])
+            packets.append(connect[2])
+
+        print("connections : " , connections)
 
         # for c, m, zl, zh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
             # xs = randrange(n, 23, 32)
             # ys = randrange(n, 0, 100)
             # zs = randrange(n, zl, zh)
-        # ax.scatter("e", "f", 10, 'r', marker='o')
+        ax.scatter(mac_src[0], mac_dst[0], 10, 'r', marker='o')
 
         # ax.set_xlabel('X Label')
         # ax.set_ylabel('Y Label')
