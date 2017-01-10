@@ -260,12 +260,17 @@ class Gui(Frame):
         canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
         canvas.show()
 
+
+
+    # View Graph of channel usgae
     def showPerByChannelUsage(self):
         f = Figure(figsize=(13, 6.5), dpi=100)
         ax = f.add_subplot(111)
 
         global db
-        channels = db.getChannellUsage()
+        channels = db.getChannelTransformation()
+
+        # print channels
 
         channelTab = []
         packets = []
