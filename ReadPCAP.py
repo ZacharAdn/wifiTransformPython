@@ -1,7 +1,7 @@
 from scapy.all import *
 
 
-class Parser:
+class PcapParser:
     usage = {}
     session = {}
     router = {}
@@ -9,12 +9,13 @@ class Parser:
     def __init__(self, fileName):
         self.pcapFile = fileName
 
-    def startParse(self):
-        print ("Strt parsing the data...")
-        packets = rdpcap(self.pcapFile)
+    def Parse(self):
+        print ("Parsing data...")
+        packetsFromFile = rdpcap(self.pcapFile)
 
-        for packet in packets:
+        for packet in packetsFromFile:
             packetString = str(packet[1].__repr__())
+            # print(packetString)
             # Subtype(1): src, dest, retry, write in usage and session (channel 0).
             if packetString[packetString.index("subtype=") + 8:packetString.index("L type=")] == "1":
                 src = packetString[packetString.index("addr2=") + 6:packetString.index("addr3=") - 1]

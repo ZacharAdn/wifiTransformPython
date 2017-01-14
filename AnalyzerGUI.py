@@ -5,6 +5,8 @@ from tkFileDialog import askopenfilename
 import matplotlib, numpy, sys
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as pl
+import six
+from matplotlib import colors as colormat
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -18,7 +20,7 @@ from ReadPCAP import *
 # Global var
 db = 0
 
-class Gui(Frame):
+class Gui(Frame):#TODO gui
     def __init__(self, parent):
         Frame.__init__(self, parent)
 
@@ -60,14 +62,13 @@ class Gui(Frame):
     def initBars(self):
         note = Notebook(root)
 
-        self.tabCnl = Frame(note)
         self.tabPER = Frame(note)
         self.tabSsn = Frame(note)
-        self.tabUsr = Frame(note)
+        # self.tabUsr = Frame(note)
         self.tabCnlPER = Frame(note)
+        self.tabConnections =Frame(note)
+        self.tabEfficiency = Frame(note)
 
-        # add tab and bind to its corresponding graph
-        note.add(self.tabCnl, text="Channel")
 
         note.add(self.tabPER, text="PER")
         self.tabPER.bind("<Button-1>", self.showPacketPerUserGraph())
@@ -75,11 +76,15 @@ class Gui(Frame):
         note.add(self.tabCnlPER, text="Per By Channel")
         self.tabCnlPER.bind("<Button-1>", self.showPerByChannelGraph())
 
+        note.add(self.tabConnections, text="Connections between users")
+        self.tabConnections.bind("<Button-1>", self.connectionBetwenUsers())
 
-        # note.add(self.tabCnlPER, text="connctions")
-        # self.tabCnlPER.bind("<Button-1>", self.connectionBetwenUsers())
+        note.add(self.tabEfficiency, text="channel efficiency")
+        self.tabEfficiency.bind("<Button-1>", self.channelEfficiency())
 
-        # self.connectionBetwenUsers()
+        note.add(self.tabSsn, text="channel efficiency")
+        self.tabSsn.bind("<Button-1>",  self.sesseionsNumForUser())
+
 
 
         note.add(self.tabSsn, text="Sessions")
@@ -117,8 +122,8 @@ class Gui(Frame):
             db.createDB()
 
             # init and start parse
-            parser = Parser(fileName)
-            parser.startParse()
+            parser = PcapParser(fileName)
+            parser.Parse()
             # insert to DB
             db.insertToTable("usage", parser.getUsageData())
             db.insertToTable("routers", parser.getRouterData())
@@ -152,7 +157,7 @@ class Gui(Frame):
         global db
         users = db.getUserUsage()
 
-        print (users)
+        # print (users)
         macs = []
         sent = []
         retransmit = []
@@ -231,7 +236,7 @@ class Gui(Frame):
                 ratioList.append(100)
 
 
-        print ratioList
+        # print ratioList
 
         ax.bar(index, ratioList, bar_width,
                         alpha=opacity,
@@ -256,35 +261,127 @@ class Gui(Frame):
         canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
         canvas.show()
 
-    # def connectionBetwenUsers(self):
-        # fig = pl.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        # n = 100
-        #
-        # global db
-        # connections= db.getConnectionUsers()
-        #
-        # mac_src=[]
-        # mac_dst=[]
-        # packets=[]
-        # for connect in connections:
-        #     mac_src.append(connect[0])
-        #     mac_dst.append(connect[1])
-        #     packets.append(connect[2])
-        #
-        # print("connections : " , connections)
+    def connectionBetwenUsers(self):
 
-        # for c, m, zl, zh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
-            # xs = randrange(n, 23, 32)
-            # ys = randrange(n, 0, 100)
-            # zs = randrange(n, zl, zh)
-        # ax.scatter("e", "f", 10, 'r', marker='o')
+        f = Figure(figsize=(13, 6.5), dpi=100)
+        ax = f.add_subplot(111)
 
-        # ax.set_xlabel('X Label')
-        # ax.set_ylabel('Y Label')
-        # ax.set_zlabel('Z Label')
-        #
-        # pl.show()
+        # Get data from database
+        global db
+        connections = db.getConnectionUsers()
+
+
+        people = []
+        packets = []
+
+        for connection in connections:
+            people.append(str(connection[0] + "\n" + connection[1]))
+            packets.append(connection[2])
+
+        index = numpy.arange(len(connections))  # the x locations for the groups
+        bar_width = .3
+        opacity = 0.4
+
+
+        ax.bar( index,packets, bar_width,
+                        alpha=opacity,
+                        color='m',
+                        label='packets between users')
+
+
+        ax.legend(loc=1)
+
+        title = "Connections between users"
+        ax.set_title(title)
+        ax.set_label("mac addres")
+        ax.set_ylabel('Packets between users')
+        ax.set_xticks(index)
+        ax.set_xticklabels(people, fontsize='small', ha='right', rotation=0)
+        ax.set_xlim([0,5]) #the first 20 macs
+        ax.set_ylim([0, 50])
+
+
+        canvas = FigureCanvasTkAgg(f, master=self.tabConnections)
+
+        toolbar = NavigationToolbar2TkAgg(canvas, self.tabConnections)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
+        canvas.show()
+
+    def channelEfficiency(self):
+        f = Figure(figsize=(7,7), dpi=100)
+        pl = f.add_subplot(111)
+
+        # Get data from database
+        global db
+        connections = db.getchannelEfficiency()
+
+        routerName = []
+        connectionsNum= []
+
+        for connection in connections:
+            routerName.append(connection[0])
+            connectionsNum.append(connection[1])
+
+        labels = routerName
+        sizes = connectionsNum
+
+        colorsDB = list(six.iteritems(colormat.cnames))[:len(routerName)]
+
+        colorsForGraph= []
+        [colorsForGraph.append(color[0]) for color in colorsDB]
+
+        explode = numpy.zeros(len(routerName))  # only "explode" the 2nd slice (i.e. 'Hogs') TODO the biggest
+
+        pl.pie(sizes, explode= explode, labels=labels, colors=colorsForGraph,
+                autopct='%1.1f%%', shadow=True, startangle=90)
+
+        pl.axis('equal')
+        pl.legend(loc=1)
+        title = "Router Efficiency"
+        pl.set_title(title)
+
+        canvas = FigureCanvasTkAgg(f, master=self.tabEfficiency)
+
+        toolbar = NavigationToolbar2TkAgg(canvas, self.tabEfficiency)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
+        canvas.show()
+
+    def sesseionsNumForUser(self):
+
+        f = Figure(figsize=(7,7), dpi=100)
+        pl = f.add_subplot(111)
+        pl.rcdefaults()
+
+        # Get data from database
+        global db
+        connections = db.sesseionsNum()
+        print "connections :::" ,connections;
+
+        users = []
+        numOfsession = []
+        for connection in connections[:10]:
+            users.append(connection[0])
+            numOfsession.append(connection[1])
+
+
+
+        y_pos = numpy.arange(len(users))
+        performance = numOfsession
+        error = numpy.random.rand(len(users))
+        print "y pos ",y_pos, " per ", performance
+        pl.barh(y_pos, performance,  xerr=error , align='center', alpha=0.4)
+        pl.yticks(y_pos, users)
+        pl.xlabel('Num of sessions')
+        pl.title('Num of sessions for each user')
+
+        canvas = FigureCanvasTkAgg(f, master=self.tabEfficiency)
+
+        toolbar = NavigationToolbar2TkAgg(canvas, self.tabEfficiency)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=RIGHT, fill=BOTH, expand=True)
+        canvas.show()
 
 
 root = Tk()

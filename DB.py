@@ -146,7 +146,14 @@ class DB:
     def getConnectionUsers(self):
         return self.__getQuery("select MAC_SRC, MAC_DST, packets from session where  (channel != '') "
                                " and (MAC_DST != 'ff:ff:ff:ff:ff:ff') ")
+    # def getUsersConnection(self):
+    #     return self.__getQuery("se")
 
+    def getchannelEfficiency(self):
+        return self.__getQuery("select SSID, sum(CONNECTIONS) from routers where CONNECTIONS != '' group by SSID")
+
+    def sesseionsNum(self):
+        return self.__getQuery("select MAC_SRC,count(MAC_SRC) from session where  (channel != '') group by MAC_SRC")
  # M
 
 '''
